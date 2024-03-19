@@ -77,14 +77,13 @@ namespace ESLifyEverything.FormData
                             return false;
                         }
                     }
-                    uint validMin = 0x000800;
                     uint validMax = 0x000fff;
 
                     foreach (IMajorRecordGetter? form in mod.EnumerateMajorRecords())
                     {
                         if (form.FormKey.ModKey.ToString().Equals(this.ModName))
                         {
-                            if (form.FormKey.ID < validMin || form.FormKey.ID > validMax)
+                            if (form.FormKey.ID > validMax)
                             {
                                 DevLog.Log(form.FormKey.ToString() + " out of bounds.");
                                 return false;
