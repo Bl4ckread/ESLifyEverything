@@ -33,12 +33,12 @@ namespace ESLifyEverything.PluginHandles
                     }
                 }
             }
-            
+
             foreach (var dialogTopic in mod.DialogTopics)
             {
-                foreach(DialogResponses? response in dialogTopic.Responses.ToArray())
+                foreach (DialogResponses? response in dialogTopic.Responses.ToArray())
                 {
-                    foreach(CompactedModData compactedModData in CompactedModDataD.Values)
+                    foreach (CompactedModData compactedModData in CompactedModDataD.Values)
                     {
                         if (response.FormKey.ModKey.ToString().Equals(compactedModData.ModName, StringComparison.OrdinalIgnoreCase))
                         {
@@ -83,14 +83,39 @@ namespace ESLifyEverything.PluginHandles
                     }
                 }
             }
-            
+
             foreach (var worldspace in mod.Worldspaces)
             {
-                foreach(var worldSpaceBlock in worldspace.SubCells)
+                var persistentCell = worldspace.TopCell;
+                if (persistentCell != null)
                 {
-                    foreach(var worldspaceSubBlock in worldSpaceBlock.Items)
+                    foreach (CompactedModData compactedModData in CompactedModDataD.Values)
                     {
-                        foreach(Cell? cell in worldspaceSubBlock.Items.ToArray())
+                        if (persistentCell.FormKey.ModKey.ToString().Equals(compactedModData.ModName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            var formCopy = persistentCell.DeepCopy();
+                            foreach (FormHandler formHandler in compactedModData.CompactedModFormList)
+                            {
+                                if (persistentCell.FormKey.Equals(formHandler.CreateOriginalFormKey(compactedModData.ModName)))
+                                {
+                                    formCopy = persistentCell.Duplicate(formHandler.CreateCompactedFormKey());
+                                    DevLog.Log("Removing W Cell " + persistentCell.FormKey.ToString());
+                                    worldspace.Remove(persistentCell);
+                                    DevLog.Log("Duplicating to W Cell " + formCopy.FormKey.ToString());
+                                    worldspace.TopCell = formCopy;
+                                    ModEdited = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                foreach (var worldSpaceBlock in worldspace.SubCells)
+                {
+                    foreach (var worldspaceSubBlock in worldSpaceBlock.Items)
+                    {
+                        foreach (Cell? cell in worldspaceSubBlock.Items.ToArray())
                         {
                             foreach (CompactedModData compactedModData in CompactedModDataD.Values)
                             {
@@ -119,36 +144,40 @@ namespace ESLifyEverything.PluginHandles
 
             foreach (var worldspace in mod.Worldspaces)
             {
+                var persistentCell = worldspace.TopCell;
+                if (persistentCell != null)
+                {
+                    foreach (IPlaced persistentRef in persistentCell.Persistent.ToArray())
+                    {
+                        foreach (CompactedModData compactedModData in CompactedModDataD.Values)
+                        {
+                            if (persistentRef.FormKey.ModKey.ToString().Equals(compactedModData.ModName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                IPlaced formCopy = (IPlaced)persistentRef.DeepCopy();
+                                foreach (FormHandler formHandler in compactedModData.CompactedModFormList)
+                                {
+                                    if (persistentRef.FormKey.Equals(formHandler.CreateOriginalFormKey(compactedModData.ModName)))
+                                    {
+                                        formCopy = (IPlaced)persistentRef.Duplicate(formHandler.CreateCompactedFormKey());
+                                        DevLog.Log("Removing W P PlacedNpc " + persistentRef.FormKey.ToString());
+                                        persistentCell.Persistent.Remove(persistentRef);
+                                        DevLog.Log("Duplicating W P PlacedNpc to " + formCopy.FormKey.ToString());
+                                        persistentCell.Persistent.Add(formCopy);
+                                        ModEdited = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 foreach (var worldSpaceBlock in worldspace.SubCells)
                 {
                     foreach (var worldspaceSubBlock in worldSpaceBlock.Items)
                     {
                         foreach (Cell? cell in worldspaceSubBlock.Items)
                         {
-                            foreach (IPlaced persistentRef in cell.Persistent.ToArray())
-                            {
-                                foreach (CompactedModData compactedModData in CompactedModDataD.Values)
-                                {
-                                    if (persistentRef.FormKey.ModKey.ToString().Equals(compactedModData.ModName, StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        IPlaced formCopy = (IPlaced)persistentRef.DeepCopy();
-                                        foreach (FormHandler formHandler in compactedModData.CompactedModFormList)
-                                        {
-                                            if (persistentRef.FormKey.Equals(formHandler.CreateOriginalFormKey(compactedModData.ModName)))
-                                            {
-                                                formCopy = (IPlaced)persistentRef.Duplicate(formHandler.CreateCompactedFormKey());
-                                                DevLog.Log("Removing W P PlacedNpc " + persistentRef.FormKey.ToString());
-                                                cell.Persistent.Remove(persistentRef);
-                                                DevLog.Log("Duplicating W P PlacedNpc to " + formCopy.FormKey.ToString());
-                                                cell.Persistent.Add(formCopy);
-                                                ModEdited = true;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
                             foreach (IPlaced temporaryRef in cell.Temporary.ToArray())
                             {
                                 foreach (CompactedModData compactedModData in CompactedModDataD.Values)
@@ -181,9 +210,9 @@ namespace ESLifyEverything.PluginHandles
             //Cells
             foreach (var cellRec in mod.Cells.Records)
             {
-                foreach(var cellBlock in cellRec.SubBlocks)
+                foreach (var cellBlock in cellRec.SubBlocks)
                 {
-                    foreach(var cell in cellBlock.Cells.ToArray())
+                    foreach (var cell in cellBlock.Cells.ToArray())
                     {
                         foreach (CompactedModData compactedModData in CompactedModDataD.Values)
                         {
@@ -215,7 +244,7 @@ namespace ESLifyEverything.PluginHandles
                 {
                     foreach (var cell in cellBlock.Cells)
                     {
-                        foreach(IPlaced persistentRef in cell.Persistent.ToArray())
+                        foreach (IPlaced persistentRef in cell.Persistent.ToArray())
                         {
                             foreach (CompactedModData compactedModData in CompactedModDataD.Values)
                             {
