@@ -46,12 +46,26 @@ namespace ESLifyEverything.PluginHandles
                 }
                 GF.WriteLine(pluginName + " loaded.", GF.Settings.VerboseConsoleLoging, GF.Settings.VerboseFileLoging);
 
+                bool header171 = false;
+
                 foreach (IMasterReferenceGetter masterReference in mod.ModHeader.MasterReferences.ToArray())
                 {
+                    if (CompactedModDataD.TryGetValue(masterReference.Master.ToString(), out CompactedModData? masterModData))
+                    {
+                        foreach (FormHandler form in masterModData.CompactedModFormList)
+                        {
+                            if (form.CompactedFormID.CompareTo("000800") < 0)
+                            {
+                                header171 = true;
+                                break;
+                            }
+                        }
+                    }
                     if (!ESLify.ActiveLoadOrder.Contains(masterReference.Master.ToString(), StringComparer.OrdinalIgnoreCase))
                     {
                         if (CompactedModDataD.TryGetValue(masterReference.Master.ToString(), out CompactedModData? modData))
                         {
+
                             if (!modData.FromMerge)
                             {
                                 GF.WriteLine(GF.stringLoggingData.MissingMaster + masterReference.Master.ToString());
@@ -60,6 +74,20 @@ namespace ESLifyEverything.PluginHandles
                         }
                     }
                 }
+
+                if (CompactedModDataD.TryGetValue(pluginName, out CompactedModData? currentModData))
+                {
+                    foreach (FormHandler form in currentModData.CompactedModFormList)
+                    {
+                        if (form.CompactedFormID.CompareTo("000800") < 0)
+                        {
+                            header171 = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (header171) mod.ModHeader.Stats.Version = 1.71F;
 
                 DevLog.Log("Handling " + mod.ModKey.ToString());
 
